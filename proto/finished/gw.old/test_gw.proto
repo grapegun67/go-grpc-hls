@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option go_package = "src/proto/test_gw";	/* "."을 받아들이지 않아서 같은 이름의 두 디렉터리를 생성                      		*/
+import "google/api/annotations.proto";
+package test_gw;				/* 패키지명은 go_package 명과 같아야한다. 안그러면 "unknown service" 에러 발생함	*/
+
+service TestProto {
+        rpc GetValue(FirstValue) returns (SecondValue) {
+		option (google.api.http) = {
+			post: "/v1/example/echo"
+			body: "*"
+		};
+	}	
+}
+
+message FirstValue {
+        int32 val1 = 1;
+        int32 val2 = 2;
+}
+
+message SecondValue {
+        int32 val3 = 1;
+        int32 val4 = 2;
+}

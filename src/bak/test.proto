@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "test_proto/test_proto";                    /* "."을 받아들이지 않아서 같은 이름의 두 디렉터리를 생>성                      */
+package test_proto;                                             /* 패키지명은 go_package 명과 같아야한다. 안그러면 "unknown service" 에러 발생함*/
+
+service TestProto {
+        rpc GetValue(FirstValue) returns (SecondValue) {}
+}
+
+message FirstValue {
+        int32 val1 = 1;
+        int32 val2 = 2;
+}
+
+message SecondValue {
+        int32 val3 = 1;
+        int32 val4 = 2;
+}
