@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type TestProtoClient interface {
 	GetValue(ctx context.Context, in *FirstValue, opts ...grpc.CallOption) (*SecondValue, error)
 	GetStreamValue(ctx context.Context, in *FirstValue, opts ...grpc.CallOption) (TestProto_GetStreamValueClient, error)
+	GetBiStreamValue(ctx context.Context, opts ...grpc.CallOption) (TestProto_GetBiStreamValueClient, error)
 }
 
 type testProtoClient struct {
@@ -71,12 +72,44 @@ func (x *testProtoGetStreamValueClient) Recv() (*SecondValue, error) {
 	return m, nil
 }
 
+func (c *testProtoClient) GetBiStreamValue(ctx context.Context, opts ...grpc.CallOption) (TestProto_GetBiStreamValueClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TestProto_ServiceDesc.Streams[1], "/test_gw.TestProto/GetBiStreamValue", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &testProtoGetBiStreamValueClient{stream}
+	return x, nil
+}
+
+type TestProto_GetBiStreamValueClient interface {
+	Send(*FirstValue) error
+	Recv() (*SecondValue, error)
+	grpc.ClientStream
+}
+
+type testProtoGetBiStreamValueClient struct {
+	grpc.ClientStream
+}
+
+func (x *testProtoGetBiStreamValueClient) Send(m *FirstValue) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *testProtoGetBiStreamValueClient) Recv() (*SecondValue, error) {
+	m := new(SecondValue)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // TestProtoServer is the server API for TestProto service.
 // All implementations must embed UnimplementedTestProtoServer
 // for forward compatibility
 type TestProtoServer interface {
 	GetValue(context.Context, *FirstValue) (*SecondValue, error)
 	GetStreamValue(*FirstValue, TestProto_GetStreamValueServer) error
+	GetBiStreamValue(TestProto_GetBiStreamValueServer) error
 	mustEmbedUnimplementedTestProtoServer()
 }
 
@@ -89,6 +122,9 @@ func (UnimplementedTestProtoServer) GetValue(context.Context, *FirstValue) (*Sec
 }
 func (UnimplementedTestProtoServer) GetStreamValue(*FirstValue, TestProto_GetStreamValueServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetStreamValue not implemented")
+}
+func (UnimplementedTestProtoServer) GetBiStreamValue(TestProto_GetBiStreamValueServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetBiStreamValue not implemented")
 }
 func (UnimplementedTestProtoServer) mustEmbedUnimplementedTestProtoServer() {}
 
@@ -142,6 +178,32 @@ func (x *testProtoGetStreamValueServer) Send(m *SecondValue) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _TestProto_GetBiStreamValue_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(TestProtoServer).GetBiStreamValue(&testProtoGetBiStreamValueServer{stream})
+}
+
+type TestProto_GetBiStreamValueServer interface {
+	Send(*SecondValue) error
+	Recv() (*FirstValue, error)
+	grpc.ServerStream
+}
+
+type testProtoGetBiStreamValueServer struct {
+	grpc.ServerStream
+}
+
+func (x *testProtoGetBiStreamValueServer) Send(m *SecondValue) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *testProtoGetBiStreamValueServer) Recv() (*FirstValue, error) {
+	m := new(FirstValue)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // TestProto_ServiceDesc is the grpc.ServiceDesc for TestProto service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -159,6 +221,12 @@ var TestProto_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "GetStreamValue",
 			Handler:       _TestProto_GetStreamValue_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetBiStreamValue",
+			Handler:       _TestProto_GetBiStreamValue_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "test_gw.proto",
