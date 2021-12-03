@@ -13,10 +13,10 @@ import (
 // 누군가 악성 .ts파일을 업로드 하면 어떡하지
 // 로그를 사용하는, 남기는 방식을 추가해야함
 const (
-	VIDEO_PATH       string = "/mnt/c/Users/winix/Videos/독수리"
+	VIDEO_PATH       string = "/usr/local/nginx/html/hls"
 	CLIENT_NAME      string = "roo"
-	CLIENT_FILE_PATH string = "/tmp/test"
-	PRIVATE_KEY_PATH string = "/home/roo/.ssh/tmpkey"
+	CLIENT_FILE_PATH string = "/usr/local/nginx/html/hls"
+	PRIVATE_KEY_PATH string = "/home/roo/.ssh/testkey"
 	REMOTE_SERVER_IP string = "192.168.27.128"
 )
 
@@ -54,7 +54,7 @@ func main() {
 					// 위의 조건문과 겹쳐서 이건 분기를 조정해도 좋을듯
 					if strings.HasSuffix(file.Name(), ".ts") == true {
 
-						err := os.Rename(fmt.Sprintf("%s/%s", VIDEO_PATH, file.Name()), fmt.Sprintf("%s완료/%s", VIDEO_PATH, file.Name()))
+						err := os.Rename(fmt.Sprintf("%s/%s", VIDEO_PATH, file.Name()), fmt.Sprintf("%s/완료/%s", VIDEO_PATH, file.Name()))
 						if err != nil {
 							fmt.Println(err);
 						}
